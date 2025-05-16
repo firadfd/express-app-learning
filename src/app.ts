@@ -9,38 +9,17 @@ app.use(express.json());
 
 // Main route
 app.get("/", (req: Request, res: Response) => {
-  res.format({
-    "application/json": () => {
-      res.json({
-        code: 200,
-        success: true,
-        message: {
-          title: "Welcome to the API",
-          description: "This is a simple Express API.",
-          developer: "Firad Fd",
-          email: "firadfd833@gmail.com",
-          version: "1.0.0",
-        },
-      });
-    },
-    "text/html": () => {
-      res.json({
-        code: 200,
-        success: true,
-        message: {
-          title: "Welcome to the API",
-          description: "This is a simple Express API.",
-        },
-      });
-    },
-    default: () => {
-      res.json({
-        code: 200,
-        success: true,
-        message: {
-          title: "Welcome to the API",
-        },
-      });
+  res.json({
+    code: 200,
+    success: true,
+    message: "This is the main route",
+    result: {
+      title: "Welcome to my express learning app",
+      description: "lets explore the world how do backend works",
+      developer: "Firad Fd",
+      email: "firadfd833@gmail.com",
+      github: "WWW.github.com/firadfd",
+      linkedin: "WWW.linkedin.com/in/firadfd",
     },
   });
 });
