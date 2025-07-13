@@ -118,7 +118,9 @@ const errorMiddleWare = (
   next: NextFunction
 ) => {
   console.log(error);
-  res.status(500).json({ message: "There was a server side error", error: error.message });
+  res
+    .status(500)
+    .json({ message: "There was a server side error", error: error.message });
 };
 
 // Apply middleware
