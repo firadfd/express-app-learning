@@ -2,7 +2,6 @@ import { error } from "console";
 import express, { NextFunction, Request, Response } from "express";
 
 const app = express();
-const PORT = 3000;
 
 // Middleware
 app.use(express.json());
@@ -51,7 +50,7 @@ export const logWrapper = (options: any) => {
 
       next();
     } else {
-      throw new Error("There is an error happened");
+      next(new Error("There is an error happened"));
     }
   };
 };
@@ -65,20 +64,7 @@ function tryParseJSON(str: string): any {
   }
 }
 
-const errorMiddleWare = (
-  error: Error,
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  console.log(error);
-  res.status(500).send("There was a server side error");
-};
-
-app.use(logWrapper({ value: true }));
-app.use(errorMiddleWare);
-
-// Main route
+// Routes
 app.get("/", (req: Request, res: Response) => {
   res.json({
     code: 200,
@@ -93,10 +79,10 @@ app.get("/", (req: Request, res: Response) => {
       linkedin: "www.linkedin.com/in/firadfd",
     },
   });
-  throw new Error("this is he error message");
+  // Note: This throw will be caught by error middleware
+  throw new Error("this is the error message");
 });
 
-// signup route
 app.post("/signup", (req: Request, res: Response) => {
   res.json({
     code: 200,
@@ -113,20 +99,30 @@ app.post("/signup", (req: Request, res: Response) => {
   });
 });
 
-// login route
 app.post("/login", (req: Request, res: Response) => {
   res.json({
     code: 200,
     success: true,
     message: "Login successful",
-
     result: {
       accessToken: "test-token",
     },
   });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+// Error middleware (place after all routes)
+const errorMiddleWare = (
+  error: Error,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  console.log(error);
+  res.status(500).json({ message: "There was a server side error", error: error.message });
+};
+
+// Apply middleware
+app.use(logWrapper({ value: true }));
+app.use(errorMiddleWare);
+
+export default app; // Export for Vercel
