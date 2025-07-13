@@ -2,9 +2,9 @@
   "name": "express-typescript-app",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/app.js",
+  "main": "api/index.js",
   "scripts": {
-    "start": "node dist/app.js",
+    "start": "node api/index.js",
     "dev": "nodemon",
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -14,14 +14,13 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "cookie-parser": "^1.4.7",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "typescript": "^5.8.3",
+    "ts-node": "^10.9.2"
   },
   "devDependencies": {
     "@types/express": "^5.0.1",
     "@types/node": "^22.15.18",
-    "nodemon": "^3.1.10",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "nodemon": "^3.1.10"
   }
 }

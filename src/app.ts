@@ -79,7 +79,7 @@ app.get("/", (req: Request, res: Response) => {
       linkedin: "www.linkedin.com/in/firadfd",
     },
   });
-  // Note: This throw will be caught by error middleware
+  // Note: This throw triggers the error middleware
   throw new Error("this is the error message");
 });
 
@@ -110,7 +110,7 @@ app.post("/login", (req: Request, res: Response) => {
   });
 });
 
-// Error middleware (place after all routes)
+// Error middleware (must be after routes)
 const errorMiddleWare = (
   error: Error,
   req: Request,
