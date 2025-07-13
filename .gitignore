@@ -5,7 +5,7 @@ node_modules/
 .env
 
 # TypeScript output
-dist/
+#dist/
 
 # IDE files
 .vscode/
