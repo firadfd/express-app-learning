@@ -1,22 +1,34 @@
-import { error } from "console";
 import express, { NextFunction, Request, Response } from "express";
+import mongoose from "mongoose";
 import logWrapper from "./logger/logger";
 import errorMiddleWare from "./error/error_middle_ware";
+import todoHandler from "./routeHandler/todoHandler";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json());
-
-// Error middleware (must be after routes)
-
+app.use("/todos", todoHandler);
 app.use(logWrapper({ value: true }));
 app.use(errorMiddleWare);
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+//database connectin with mongoose
+mongoose
+  .connect(process.env.MONGO_URI!)
+  .then(() => {
+    console.log("✅ MongoDB connected successfully!");
+
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running at: http://localhost:${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error("❌ DB connection error:", error);
+  });
 
 // Routes
 app.get("/", (req: Request, res: Response) => {
