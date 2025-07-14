@@ -1,68 +1,22 @@
 import { error } from "console";
 import express, { NextFunction, Request, Response } from "express";
+import logWrapper from "./logger/logger";
+import errorMiddleWare from "./error/error_middle_ware";
 
 const app = express();
+const PORT = 3000;
 
 // Middleware
 app.use(express.json());
 
-export const logWrapper = (options: any) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    if (options.value) {
-      const start = Date.now();
-      const { method, originalUrl, headers, query, body } = req;
+// Error middleware (must be after routes)
 
-      const oldWrite = res.write;
-      const oldEnd = res.end;
+app.use(logWrapper({ value: true }));
+app.use(errorMiddleWare);
 
-      const chunks: Buffer[] = [];
-
-      res.write = function (chunk: any): boolean {
-        chunks.push(Buffer.from(chunk));
-        return oldWrite.apply(res, arguments as any);
-      };
-
-      res.end = function (chunk: any): any {
-        if (chunk) {
-          chunks.push(Buffer.from(chunk));
-        }
-
-        const responseBodyString = Buffer.concat(chunks).toString("utf8");
-        const responseBody = tryParseJSON(responseBodyString);
-        const duration = Date.now() - start;
-
-        const log = {
-          url: originalUrl,
-          timestamp: `${new Date().toLocaleTimeString()} ${new Date().toDateString()}`,
-          method,
-          headers,
-          query,
-          requestBody: body,
-          statusCode: res.statusCode,
-          responseBody,
-          duration: `${duration}ms`,
-        };
-
-        console.log(JSON.stringify(log, null, 2));
-
-        return oldEnd.apply(res, arguments as any);
-      };
-
-      next();
-    } else {
-      next(new Error("There is an error happened"));
-    }
-  };
-};
-
-// Helper to parse JSON safely
-function tryParseJSON(str: string): any {
-  try {
-    return JSON.parse(str);
-  } catch (e) {
-    return str;
-  }
-}
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
 
 // Routes
 app.get("/", (req: Request, res: Response) => {
@@ -109,22 +63,5 @@ app.post("/login", (req: Request, res: Response) => {
     },
   });
 });
-
-// Error middleware (must be after routes)
-const errorMiddleWare = (
-  error: Error,
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  console.log(error);
-  res
-    .status(500)
-    .json({ message: "There was a server side error", error: error.message });
-};
-
-// Apply middleware
-app.use(logWrapper({ value: true }));
-app.use(errorMiddleWare);
 
 export default app; // Export for Vercel
