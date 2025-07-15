@@ -6,28 +6,35 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const logger_1 = __importDefault(require("./logger/logger"));
-const error_middle_ware_1 = __importDefault(require("./error/error_middle_ware"));
+const errorMiddleWare_1 = __importDefault(require("./error/errorMiddleWare"));
 const todoHandler_1 = __importDefault(require("./routeHandler/todoHandler"));
+const authHandler_1 = __importDefault(require("./routeHandler/authHandler"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(express_1.default.json());
-app.use("/todos", todoHandler_1.default);
-app.use((0, logger_1.default)({ value: true }));
-app.use(error_middle_ware_1.default);
 //database connectin with mongoose
 mongoose_1.default
-    .connect(process.env.MONGO_URI)
+    .connect(process.env.MONGO_URI, {
+    maxPoolSize: 10,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+})
     .then(() => {
     console.log("✅ MongoDB connected successfully!");
-    app.listen(PORT, () => {
-        console.log(`🚀 Server running at: http://localhost:${PORT}`);
-    });
+    // Only listen locally
+    if (process.env.NODE_ENV !== "production") {
+        const PORT = process.env.PORT || 3000;
+        app.listen(PORT, () => {
+            console.log(`🚀 Server running at: http://localhost:${PORT}`);
+        });
+    }
 })
     .catch((error) => {
     console.error("❌ DB connection error:", error);
+    process.exit(1);
 });
 // Routes
 app.get("/", (req, res) => {
@@ -47,29 +54,8 @@ app.get("/", (req, res) => {
     // Note: This throw triggers the error middleware
     throw new Error("this is the error message");
 });
-app.post("/signup", (req, res) => {
-    res.json({
-        code: 200,
-        success: true,
-        message: "Signup successful",
-        result: {
-            accessToken: "test-token",
-            userInfo: {
-                name: req.body.name,
-                email: req.body.email,
-                pass: req.body.pass,
-            },
-        },
-    });
-});
-app.post("/login", (req, res) => {
-    res.json({
-        code: 200,
-        success: true,
-        message: "Login successful",
-        result: {
-            accessToken: "test-token",
-        },
-    });
-});
-exports.default = app; // Export for Vercel
+app.use("/todos", todoHandler_1.default);
+app.use("/auth", authHandler_1.default);
+app.use((0, logger_1.default)({ value: true }));
+app.use(errorMiddleWare_1.default);
+exports.default = app;

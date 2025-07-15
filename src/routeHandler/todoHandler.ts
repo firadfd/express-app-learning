@@ -5,30 +5,36 @@ import { ITodo } from "../schema/todoSchema";
 import mongoose from "mongoose";
 const Todo = mongoose.model<ITodo>("Todo", todoSchema);
 
-const route = express.Router();
+const router = express.Router();
 
 //Get all todos
-route.get("/", async (req: Request, res: Response): Promise<void> => {
+router.get("/", async (req: Request, res: Response): Promise<void> => {
   try {
-    const todos = await Todo.find(); // fetch all todos from DB
+    const todos = await Todo.find();
     res.status(200).json({
+      success: true,
       message: "All todos fetched successfully",
-      todos,
+      result: todos,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Server error" });
+    console.error("Error:", error);
+    res.status(500).json({
+      code: 500,
+      success: false,
+      message: "Internal Server Error",
+      error: error,
+    });
   }
 });
 
 //Get single todo
-route.get("/:id", async (req: Request, res: Response): Promise<void> => {});
+router.get("/:id", async (req: Request, res: Response): Promise<void> => {});
 
 //Add todo
-route.post("/", async (req: Request, res: Response): Promise<void> => {
+router.post("/", async (req: Request, res: Response): Promise<void> => {
   try {
     if (!req.body.title) {
-      res.status(400).json({ error: "Title is required" });
+      res.status(400).json({ success: false, error: "Title is required" });
       return;
     }
 
@@ -38,20 +44,29 @@ route.post("/", async (req: Request, res: Response): Promise<void> => {
     });
 
     const savedTodo = await newTodo.save();
-    res.status(201).json({ message: "Todo created", todo: savedTodo });
+    res
+      .status(201)
+      .json({ success: false, message: "Todo created", result: savedTodo });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Server error" });
+    console.error("Error:", error);
+    res.status(500).json({
+      code: 500,
+      success: false,
+      message: "Internal Server Error",
+      error: error,
+    });
   }
 });
 
 //put todo
-route.put("/:id", async (req: Request, res: Response): Promise<void> => {
+router.put("/:id", async (req: Request, res: Response): Promise<void> => {
   try {
     const todoId = req.params.id;
 
     if (!todoId) {
-      res.status(400).json({ error: "id is required in URL parameter" });
+      res
+        .status(400)
+        .json({ success: false, error: "id is required in URL parameter" });
       return;
     }
 
@@ -68,7 +83,9 @@ route.put("/:id", async (req: Request, res: Response): Promise<void> => {
     if (req.body.status !== undefined) updateFields.status = req.body.status;
 
     if (Object.keys(updateFields).length === 0) {
-      res.status(400).json({ error: "No valid fields provided for update" });
+      res
+        .status(400)
+        .json({ success: false, error: "No valid fields provided for update" });
       return;
     }
 
@@ -77,45 +94,64 @@ route.put("/:id", async (req: Request, res: Response): Promise<void> => {
     });
 
     if (!updatedTodo) {
-      res.status(404).json({ error: "Todo not found" });
+      res.status(404).json({ success: false, error: "Todo not found" });
       return;
     }
 
     res.status(200).json({
+      success: true,
       message: "Todo updated successfully",
-      todo: updatedTodo,
+      result: updatedTodo,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Server error" });
+    console.error("Error:", error);
+    res.status(500).json({
+      code: 500,
+      success: false,
+      message: "Internal Server Error",
+      error: error,
+    });
   }
 });
 
 //delete todo
-route.delete("/:id", async (req: Request, res: Response): Promise<void> => {
+router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
   try {
     const todoId = req.params.id;
 
     if (!todoId) {
-      res.status(400).json({ error: "Todo ID is required in URL parameter" });
+      res.status(400).json({
+        success: false,
+        error: "Todo ID is required in URL parameter",
+      });
+      return;
+    }
+
+    // ✅ Check for valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(todoId)) {
+      res.status(400).json({
+        success: false,
+        error: "Invalid Todo ID format",
+      });
       return;
     }
 
     const deletedTodo = await Todo.findByIdAndDelete(todoId);
 
     if (!deletedTodo) {
-      res.status(404).json({ error: "Todo not found or already deleted" });
+      res.status(404).json({ success: false, error: "Todo not found" });
       return;
     }
 
     res.status(200).json({
+      success: true,
       message: "Todo deleted successfully",
-      todo: deletedTodo,
+      result: deletedTodo,
     });
   } catch (error) {
     console.error("Delete error:", error);
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({ success: false, error: "Server error" });
   }
 });
 
-export default route;
+export default router;

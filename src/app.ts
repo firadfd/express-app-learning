@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import logWrapper from "./logger/logger";
 import errorMiddleWare from "./error/errorMiddleWare";
 import todoHandler from "./routeHandler/todoHandler";
+import authHandler from "./routeHandler/authHandler";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -22,10 +23,6 @@ mongoose
   })
   .then(() => {
     console.log("✅ MongoDB connected successfully!");
-    app.use("/todos", todoHandler);
-    app.use(logWrapper({ value: true }));
-    app.use(errorMiddleWare);
-
     // Only listen locally
     if (process.env.NODE_ENV !== "production") {
       const PORT = process.env.PORT || 3000;
@@ -58,31 +55,9 @@ app.get("/", (req: Request, res: Response) => {
   throw new Error("this is the error message");
 });
 
-app.post("/signup", (req: Request, res: Response) => {
-  res.json({
-    code: 200,
-    success: true,
-    message: "Signup successful",
-    result: {
-      accessToken: "test-token",
-      userInfo: {
-        name: req.body.name,
-        email: req.body.email,
-        pass: req.body.pass,
-      },
-    },
-  });
-});
+app.use(logWrapper({ value: true }));
+app.use(errorMiddleWare);
+app.use("/todos", todoHandler);
+app.use("/auth", authHandler);
 
-app.post("/login", (req: Request, res: Response) => {
-  res.json({
-    code: 200,
-    success: true,
-    message: "Login successful",
-    result: {
-      accessToken: "test-token",
-    },
-  });
-});
-
-export default app; // Export for Vercel
+export default app;
