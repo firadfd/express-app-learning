@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 import logWrapper from "./logger/logger";
-import errorMiddleWare from "./error/error_middle_ware";
+import errorMiddleWare from "./error/errorMiddleWare";
 import todoHandler from "./routeHandler/todoHandler";
 import dotenv from "dotenv";
 
@@ -12,22 +12,31 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json());
-app.use("/todos", todoHandler);
-app.use(logWrapper({ value: true }));
-app.use(errorMiddleWare);
 
 //database connectin with mongoose
 mongoose
-  .connect(process.env.MONGO_URI!)
+  .connect(process.env.MONGO_URI!, {
+    maxPoolSize: 10,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+  })
   .then(() => {
     console.log("✅ MongoDB connected successfully!");
+    app.use("/todos", todoHandler);
+    app.use(logWrapper({ value: true }));
+    app.use(errorMiddleWare);
 
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running at: http://localhost:${PORT}`);
-    });
+    // Only listen locally
+    if (process.env.NODE_ENV !== "production") {
+      const PORT = process.env.PORT || 3000;
+      app.listen(PORT, () => {
+        console.log(`🚀 Server running at: http://localhost:${PORT}`);
+      });
+    }
   })
   .catch((error) => {
     console.error("❌ DB connection error:", error);
+    process.exit(1);
   });
 
 // Routes
