@@ -49,22 +49,35 @@ const mongoose_1 = __importStar(require("mongoose"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const userSchema = new mongoose_1.Schema({
     name: { type: String, required: true, trim: true },
-    email: { type: String, required: true, unique: true, lowercase: true },
-    password: { type: String, required: true, minlength: 6, select: false },
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+        lowercase: true,
+        trim: true,
+    },
+    password: { type: String, required: true, minlength: 8, select: false }, // Increased minlength
 }, { timestamps: true });
 // Hash password before saving
 userSchema.pre("save", function (next) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!this.isModified("password"))
             return next();
-        const salt = yield bcrypt_1.default.genSalt(10);
-        this.password = yield bcrypt_1.default.hash(this.password, salt);
-        next();
+        try {
+            const salt = yield bcrypt_1.default.genSalt(10);
+            this.password = yield bcrypt_1.default.hash(this.password, salt);
+            next();
+        }
+        catch (err) {
+            next(err);
+        }
     });
 });
 // Compare passwords
 userSchema.methods.comparePassword = function (candidatePassword) {
-    return bcrypt_1.default.compare(candidatePassword, this.password);
+    return __awaiter(this, void 0, void 0, function* () {
+        return yield bcrypt_1.default.compare(candidatePassword, this.password);
+    });
 };
 const User = mongoose_1.default.models.User || mongoose_1.default.model("User", userSchema);
 exports.default = User;

@@ -7,11 +7,10 @@ const errorMiddleWare = (
   res: Response,
   next: NextFunction
 ) => {
-  console.error("Error:", err.message); // Log the error for debugging
-  res.status(500).json({
-    code: 500,
+  res.status(err.statusCode ?? 500).json({
+    code: err.statusCode ?? 500,
     success: false,
-    message: "Internal Server Error",
+    message: `${err.message}`,
     error: err.message,
   });
 };
