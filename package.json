@@ -21,6 +21,7 @@
     "bcrypt": "^6.0.0",
     "dotenv": "^17.2.0",
     "express": "^5.1.0",
+    "http-status": "^2.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.16.3",
     "yarn": "^1.22.22"
@@ -30,6 +31,7 @@
     "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/mongoose": "^5.11.96",
+    "@types/morgan": "^1.9.10",
     "@types/node": "^22.16.3",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",

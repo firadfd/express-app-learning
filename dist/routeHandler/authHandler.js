@@ -24,20 +24,24 @@ const generateToken = (user) => {
         name: user.name,
         email: user.email,
         createdAt: user.createdAt,
-    }, process.env.JWT_SECRET, { expiresIn: "30d" });
+    }, process.env.JWT_SECRET, { expiresIn: "1h" });
 };
 // 📝 Signup
 router.post("/signup", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { name, email, password } = req.body;
-        if (!name || !email || !password)
+        if (!name || !email || !password) {
             res
                 .status(400)
                 .json({ success: false, error: "All fields are required" });
-        const existingUser = yield userSchema_1.default.findOne({ email });
-        if (existingUser)
+            return;
+        }
+        const existingUser = yield userSchema_1.default.findOne({ email: email.toLowerCase() });
+        if (existingUser) {
             res.status(409).json({ success: false, error: "User already exists" });
-        const user = new userSchema_1.default({ name, email, password });
+            return;
+        }
+        const user = new userSchema_1.default({ name, email: email.toLowerCase(), password }); // Let schema handle hashing
         yield user.save();
         const token = generateToken(user);
         res.status(201).json({
@@ -50,7 +54,7 @@ router.post("/signup", (req, res) => __awaiter(void 0, void 0, void 0, function*
         });
     }
     catch (err) {
-        console.error("Signup error:", err); // 👈 important
+        console.error("Signup error:", err);
         res
             .status(500)
             .json({ success: false, error: err.message || "Server error" });
@@ -60,13 +64,17 @@ router.post("/signup", (req, res) => __awaiter(void 0, void 0, void 0, function*
 router.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { email, password } = req.body;
-        if (!email || !password)
+        if (!email || !password) {
             res
                 .status(400)
                 .json({ success: false, error: "Email and password are required" });
-        const user = yield userSchema_1.default.findOne({ email }).select("+password");
-        if (!user || !(yield user.comparePassword(password)))
+            return;
+        }
+        const user = yield userSchema_1.default.findOne({ email: email.toLowerCase() }).select("+password");
+        if (!user || !(yield user.comparePassword(password))) {
             res.status(401).json({ success: false, error: "Invalid credentials" });
+            return;
+        }
         const token = generateToken(user);
         res.status(200).json({
             success: true,
@@ -75,7 +83,7 @@ router.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* 
         });
     }
     catch (err) {
-        console.error("Signup error:", err);
+        console.error("Login error:", err);
         res
             .status(500)
             .json({ success: false, error: err.message || "Server error" });

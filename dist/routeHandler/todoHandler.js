@@ -14,11 +14,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const todoSchema_1 = require("../schema/todoSchema");
+const auth_1 = require("../middleware/auth");
 const mongoose_1 = __importDefault(require("mongoose"));
 const Todo = mongoose_1.default.model("Todo", todoSchema_1.todoSchema);
 const router = express_1.default.Router();
 //Get all todos
-router.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get("/", auth_1.authenticate, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const todos = yield Todo.find();
         res.status(200).json({
@@ -38,9 +39,9 @@ router.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 }));
 //Get single todo
-router.get("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () { }));
+router.get("/:id", auth_1.authenticate, (req, res) => __awaiter(void 0, void 0, void 0, function* () { }));
 //Add todo
-router.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.post("/", auth_1.authenticate, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         if (!req.body.title) {
             res.status(400).json({ success: false, error: "Title is required" });
@@ -66,7 +67,7 @@ router.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 }));
 //put todo
-router.put("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.put("/:id", auth_1.authenticate, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const todoId = req.params.id;
         if (!todoId) {
@@ -84,9 +85,10 @@ router.put("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         if (req.body.status !== undefined)
             updateFields.status = req.body.status;
         if (Object.keys(updateFields).length === 0) {
-            res
-                .status(400)
-                .json({ success: false, error: "No valid fields provided for update" });
+            res.status(400).json({
+                success: false,
+                error: "No valid fields provided for update",
+            });
             return;
         }
         const updatedTodo = yield Todo.findByIdAndUpdate(todoId, updateFields, {
@@ -113,7 +115,7 @@ router.put("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
 }));
 //delete todo
-router.delete("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.delete("/:id", auth_1.authenticate, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const todoId = req.params.id;
         if (!todoId) {

@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { tryParseJSON } from "../handler";
+import httpStatus from "http-status";
+import ApiError from "../error/ApiError";
 
 const logWrapper = (options: any) => {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -45,7 +47,9 @@ const logWrapper = (options: any) => {
 
       next();
     } else {
-      next(new Error("There is an error happened"));
+      next(
+        new ApiError(httpStatus.INTERNAL_SERVER_ERROR, "Internal Servel error")
+      );
     }
   };
 };

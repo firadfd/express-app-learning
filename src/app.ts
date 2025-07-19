@@ -2,8 +2,7 @@ import express, { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 import logWrapper from "./logger/logger";
 import errorMiddleWare from "./error/errorMiddleWare";
-import todoHandler from "./routeHandler/todoHandler";
-import authHandler from "./routeHandler/authHandler";
+import routes from "./routes/routes";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -13,8 +12,9 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json());
+app.use(logWrapper({ value: true }));
 
-//database connectin with mongoose
+// Database connection with mongoose
 mongoose
   .connect(process.env.MONGO_URI!, {
     maxPoolSize: 10,
@@ -23,13 +23,10 @@ mongoose
   })
   .then(() => {
     console.log("✅ MongoDB connected successfully!");
-    // Only listen locally
-    if (process.env.NODE_ENV !== "production") {
-      const PORT = process.env.PORT || 3000;
-      app.listen(PORT, () => {
-        console.log(`🚀 Server running at: http://localhost:${PORT}`);
-      });
-    }
+    // Start server
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running at: http://localhost:${PORT}`);
+    });
   })
   .catch((error) => {
     console.error("❌ DB connection error:", error);
@@ -37,27 +34,29 @@ mongoose
   });
 
 // Routes
-app.get("/", (req: Request, res: Response) => {
+app.get("/", (res: Response) => {
   res.json({
     code: 200,
     success: true,
     message: "This is the main route",
-    result: {
-      title: "Welcome to my express learning app",
-      description: "lets explore the world how do backend works",
-      developer: "Firad Fd",
-      email: "firadfd833@gmail.com",
-      github: "www.github.com/firadfd",
-      linkedin: "www.linkedin.com/in/firadfd",
-    },
   });
-  // Note: This throw triggers the error middleware
-  throw new Error("this is the error message");
 });
 
-app.use(logWrapper({ value: true }));
+// API routes
+app.use("/api/v1", routes);
+
+// Error middleware (must be last)
 app.use(errorMiddleWare);
-app.use("/todos", todoHandler);
-app.use("/auth", authHandler);
+
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.status(404).json({
+    success: false,
+    message: "API NOT FOUND!",
+    error: {
+      path: req.originalUrl,
+      message: "Your requested path is not found!",
+    },
+  });
+});
 
 export default app;
