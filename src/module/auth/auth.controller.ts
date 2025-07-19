@@ -7,112 +7,166 @@ import {
   deleteProfile,
 } from "./auth.service";
 import sendResponse from "../../shared/sendResponse";
+import ApiError from "../../error/ApiError";
+import httpStatus from "http-status";
 
-export const signupController = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const { name, email, password } = req.body;
-    if (!name || !email || !password) {
-      res
-        .status(400)
-        .json({ success: false, error: "All fields are required" });
-      return;
+export class AuthController {
+  static async signupController(req: Request, res: Response): Promise<void> {
+    try {
+      const { name, email, password } = req.body;
+      if (!name || !email || !password) {
+        sendResponse(res, {
+          statusCode: 400,
+          success: false,
+          message: "All fields are required",
+          data: null,
+        });
+        return;
+      }
+
+      const { user, token } = await signup(name, email, password);
+      sendResponse(res, {
+        statusCode: 201,
+        success: true,
+        message: "User successfully signed up",
+        data: {
+          accessToken: token,
+          userInfo: { name: user.name, email: user.email },
+        },
+      });
+    } catch (err: any) {
+      console.error("Signup error:", err.message);
+      sendResponse(res, {
+        statusCode: err.message === "User already exists" ? 409 : 500,
+        success: false,
+        message: err.message || "Server error",
+        data: null,
+      });
     }
-
-    const { user, token } = await signup(name, email, password);
-    sendResponse(res, {
-      statusCode: 201,
-      success: true,
-      message: "User successfully logged in",
-      data: {
-        accessToken: token,
-        userInfo: { name: user.name, email: user.email },
-      },
-    });
-  } catch (err: any) {
-    console.error("Signup error:", err);
-    res.status(err.message === "User already exists" ? 409 : 500).json({
-      success: false,
-      error: err.message || "Server error",
-    });
   }
-};
 
-export const loginController = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      res
-        .status(400)
-        .json({ success: false, error: "Email and password are required" });
-      return;
+  static async loginController(req: Request, res: Response): Promise<void> {
+    try {
+      const { email, password } = req.body;
+      if (!email || !password) {
+        sendResponse(res, {
+          statusCode: 400,
+          success: false,
+          message: "Email and password are required",
+          data: null,
+        });
+        return;
+      }
+
+      const { token } = await login(email, password);
+      sendResponse(res, {
+        statusCode: 200,
+        success: true,
+        message: "Login successful",
+        data: { accessToken: token },
+      });
+    } catch (err: any) {
+      console.error("Login error:", err.message);
+      sendResponse(res, {
+        statusCode: err.message === "Invalid credentials" ? 401 : 500,
+        success: false,
+        message: err.message || "Server error",
+        data: null,
+      });
     }
-
-    const { token } = await login(email, password);
-    res.status(200).json({
-      success: true,
-      message: "Login successful",
-      result: { accessToken: token },
-    });
-  } catch (err: any) {
-    console.error("Login error:", err);
-    res.status(err.message === "Invalid credentials" ? 401 : 500).json({
-      success: false,
-      error: err.message || "Server error",
-    });
   }
-};
 
-export const getProfileController = async (
-  req: any,
-  res: Response
-): Promise<void> => {
-  try {
-    const user = await getProfile(req.user.id);
-    res.json({ success: true, result: user });
-  } catch (err: any) {
-    console.error("Get profile error:", err);
-    res.status(err.message === "User not found" ? 404 : 500).json({
-      success: false,
-      error: err.message || "Server error",
-    });
+  static async getProfileController(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    try {
+      const userReq = (req as any).user;
+      if (!userReq || !userReq.id) {
+        throw new ApiError(
+          httpStatus.UNAUTHORIZED,
+          "User not authenticated or ID missing"
+        );
+      }
+      const userId = userReq.id;
+      const user = await getProfile(userId);
+      sendResponse(res, {
+        statusCode: 200,
+        success: true,
+        message: "Profile fetched successfully",
+        data: user,
+      });
+    } catch (err: any) {
+      console.error("Get profile error:", err.message);
+      sendResponse(res, {
+        statusCode: err.message === "User not found" ? 404 : 500,
+        success: false,
+        message: err.message || "Server error",
+        data: null,
+      });
+    }
   }
-};
 
-export const updateProfileController = async (
-  req: any,
-  res: Response
-): Promise<void> => {
-  try {
-    const updates = req.body;
-    const user = await updateProfile(req.user.id, updates);
-    res.json({ success: true, message: "Profile updated", result: user });
-  } catch (err: any) {
-    console.error("Update profile error:", err);
-    res.status(err.message === "User not found" ? 404 : 500).json({
-      success: false,
-      error: err.message || "Server error",
-    });
+  static async updateProfileController(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    try {
+      const updates = req.body;
+      const userReq = (req as any).user;
+      if (!userReq || !userReq.id) {
+        throw new ApiError(
+          httpStatus.UNAUTHORIZED,
+          "User not authenticated or ID missing"
+        );
+      }
+      const userId = userReq.id;
+      const user = await updateProfile(userId, updates);
+      sendResponse(res, {
+        statusCode: 200,
+        success: true,
+        message: "Profile updated successfully",
+        data: user,
+      });
+    } catch (err: any) {
+      console.error("Update profile error:", err.message);
+      sendResponse(res, {
+        statusCode: err.message === "User not found" ? 404 : 500,
+        success: false,
+        message: err.message || "Server error",
+        data: null,
+      });
+    }
   }
-};
 
-export const deleteProfileController = async (
-  req: any,
-  res: Response
-): Promise<void> => {
-  try {
-    await deleteProfile(req.user.id);
-    res.json({ success: true, message: "User deleted" });
-  } catch (err: any) {
-    console.error("Delete profile error:", err);
-    res.status(err.message === "User not found" ? 404 : 500).json({
-      success: false,
-      error: err.message || "Server error",
-    });
+  static async deleteProfileController(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    try {
+      const userReq = (req as any).user;
+      if (!userReq || !userReq.id) {
+        throw new ApiError(
+          httpStatus.UNAUTHORIZED,
+          "User not authenticated or ID missing"
+        );
+      }
+      const userId = userReq.id;
+      await deleteProfile(userId);
+      sendResponse(res, {
+        statusCode: 200,
+        success: true,
+        message: "User deleted successfully",
+        data: null,
+      });
+    } catch (err: any) {
+      console.error("Delete profile error:", err.message);
+      sendResponse(res, {
+        statusCode: err.message === "User not found" ? 404 : 500,
+        success: false,
+        message: err.message || "Server error",
+        data: null,
+      });
+    }
   }
-};
+}

@@ -1,6 +1,5 @@
 import express, { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
-import logWrapper from "./logger/logger";
 import errorMiddleWare from "./error/errorMiddleWare";
 import routes from "./routes/routes";
 import dotenv from "dotenv";
@@ -12,7 +11,6 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json());
-app.use(logWrapper({ value: true }));
 
 // Database connection with mongoose
 mongoose
@@ -34,7 +32,7 @@ mongoose
   });
 
 // Routes
-app.get("/", (res: Response) => {
+app.get("/", (req: Request, res: Response) => {
   res.json({
     code: 200,
     success: true,

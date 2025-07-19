@@ -1,33 +1,51 @@
 import mongoose, { Schema, Document } from "mongoose";
-import { ref } from "process";
 
 export interface ITodo extends Document {
   title: string;
   description?: string;
-  status: "ACTIVE" | "INACTIVE";
-  date: Date;
+  status: "ACTIVE" | "INACTIVE" | "COMPLETED";
+  priority: "HIGH" | "MEDIUM" | "LOW";
+  isPinned?: boolean;
+  userId: mongoose.Schema.Types.ObjectId;
+  subtasks?: {
+    title: string;
+    isCompleted: boolean;
+  }[];
 }
 
 const todoSchema: Schema = new Schema(
   {
     title: { type: String, required: true },
-    description: { type: String, required: false },
+    description: { type: String },
+
     status: {
       type: String,
-      enum: ["ACTIVE", "INACTIVE"],
+      enum: ["ACTIVE", "INACTIVE", "COMPLETED"],
       default: "ACTIVE",
     },
-    date: {
-      type: Date,
-      default: Date.now,
+
+    priority: {
+      type: String,
+      enum: ["HIGH", "MEDIUM", "LOW"],
+      default: "LOW",
     },
+    isPinned: { type: Boolean, default: false },
+    subtasks: [
+      {
+        _id: false,
+        title: { type: String, required: true },
+        isCompleted: { type: Boolean, default: false },
+      },
+    ],
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      required: true,
     },
   },
   {
     versionKey: false,
+    timestamps: true,
   }
 );
 

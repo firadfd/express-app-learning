@@ -1,7 +1,6 @@
 import express from "express";
 import authHandler from "../module/auth/auth.routes";
-// import todosHandler from "../module/todo/todo.routes";
-import todoHandler from "./todoHandler";
+import todoHandler from "../module/todo/todo.routes";
 
 const router = express.Router();
 

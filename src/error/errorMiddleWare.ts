@@ -11,7 +11,6 @@ const errorMiddleWare = (
     code: err.statusCode ?? 500,
     success: false,
     message: `${err.message}`,
-    error: err.message,
   });
 };
 

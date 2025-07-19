@@ -1,28 +1,20 @@
 import express from "express";
-import {
-  signupController,
-  loginController,
-  getProfileController,
-  updateProfileController,
-  deleteProfileController,
-} from "./auth.controller";
+import { AuthController } from "./auth.controller";
 import authenticate from "../../middleware/authentication";
 
 const router = express.Router();
 
-// 📝 Signup
-router.post("/signup", signupController);
+// Public routes
+router.post("/signup", AuthController.signupController);
+router.post("/login", AuthController.loginController);
 
-// 🔐 Login
-router.post("/login", loginController);
-
-// 👤 Get My Profile
-router.get("/me", authenticate(), getProfileController);
-
-// 🔄 Update Profile
-router.put("/me", authenticate(), updateProfileController);
-
-// ❌ Delete Profile
-router.delete("/me", authenticate(), deleteProfileController);
+// Protected routes
+router.get("/profile", authenticate(), AuthController.getProfileController);
+router.put("/profile", authenticate(), AuthController.updateProfileController);
+router.delete(
+  "/profile",
+  authenticate(),
+  AuthController.deleteProfileController
+);
 
 export default router;
