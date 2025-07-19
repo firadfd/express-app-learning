@@ -17,15 +17,44 @@ A beginner-friendly RESTful API built with Node.js, Express, and MongoDB. This p
 ## 📁 Project Structure
 
 ```markdown
-- express-app-learning/
-- ├── controllers/ # Request logic handlers
-- ├── models/ # Mongoose schemas and models
-- ├── routes/ # Route definitions
-- ├── middleware/ # Custom middleware (e.g., auth)
-- ├── .env # Environment configuration
-- ├── app.js # Main app file (Express setup)
-- ├── package.json # Project metadata and dependencies
-- └── README.md
+express-app-learning/
+│
+├── src/ # Source code
+│ ├── module/ # Feature-based modules
+│ │ ├── auth/ # Auth module
+│ │ │ ├── auth.routes.ts # Auth routes
+│ │ │ └── auth.service.ts # Auth service logic
+│ │ └── todo/ # Todo module
+│ │ ├── todo.controller.ts # Todo controller (request handlers)
+│ │ ├── todo.routes.ts # Todo routes
+│ │ └── todo.service.ts # Todo service (business logic)
+│ │
+│ ├── routes/
+│ │ └── routes.ts # Combine and register all routes
+│ │
+│ ├── schema/
+│ │ ├── todoSchema.ts # Todo Mongoose schema
+│ │ └── userSchema.ts # User Mongoose schema
+│ │
+│ ├── shared/ # Shared utilities/helpers
+│ │ ├── catchAsync.ts # Async error handler
+│ │ ├── paginations.ts # Pagination utility
+│ │ ├── sendResponse.ts # Standardized API response
+│ │ └── handler.ts # Global error handler
+│ │
+│ └── app.ts # Express app setup
+│
+├── dist/ # ⛔ Auto-generated compiled JS files after build
+│ # (Do not edit manually)
+│
+├── .env # Environment variables
+├── .gitignore # Files to ignore in git
+├── nodemon.json # Nodemon configuration
+├── package.json # Project metadata and scripts
+├── tsconfig.json # TypeScript configuration
+├── vercel.json # Vercel deployment configuration
+├── yarn.lock / package-lock.json # Dependency lock files
+└── README.md # Project overview and instructions
 ```
 
 ## 📦 Installation
@@ -66,11 +95,11 @@ npm run dev
 
 ## 📡 API Endpoints
 
-> All routes are prefixed with `/api`.
+> All routes are prefixed with `/api/v1`.
 
 ### 🔐 Auth Routes
 
-#### `POST /api/auth/signup`
+#### `POST /api/v1/auth/signup`
 
 Register a new user.
 
@@ -84,7 +113,7 @@ Register a new user.
 }
 ```
 
-#### `POST /api/auth/login`
+#### `POST /api/v1/auth/login`
 
 Log in an existing user.
 
@@ -99,11 +128,11 @@ Log in an existing user.
 
 ### 📝 Todo Routes
 
-#### `GET /api/todos`
+#### `GET /api/v1/todos`
 
 Get all todos for the authenticated user.
 
-#### `POST /api/todos`
+#### `POST /api/v1/todos`
 
 Create a new todo.
 
@@ -118,7 +147,7 @@ Create a new todo.
 
 ---
 
-#### `PUT /api/todos/:id`
+#### `PUT /api/v1/todos/:id`
 
 Update an existing todo.
 
@@ -133,7 +162,7 @@ Update an existing todo.
 
 ---
 
-#### `DELETE /api/todos/:id`
+#### `DELETE /api/v1/todos/:id`
 
 Delete a todo by its ID.
 
@@ -141,7 +170,7 @@ Delete a todo by its ID.
 
 ## 🔐 Auth Middleware
 
-To access protected routes like `/api/todos`, add the JWT token to your `Authorization` header:
+To access protected routes like `/api/v1/todos`, add the JWT token to your `Authorization` header:
 
 ```
 Authorization: <your_token>
