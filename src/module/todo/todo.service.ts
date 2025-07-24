@@ -5,9 +5,25 @@ const Todo = mongoose.model<ITodo>("Todo", todoSchema);
 
 export class TodoService {
   // Get all todos for a user
-  static async getAllTodos(userId: string): Promise<ITodo[]> {
+  static async getAllTodos(
+    userId: string,
+    paginationOptions: {
+      skip: number;
+      take: number;
+      limit: number;
+      page: number;
+    }
+  ): Promise<{ todos: ITodo[]; total: number }> {
     try {
-      return await Todo.find({ userId });
+      const { skip, take } = paginationOptions;
+
+      // Find todos with pagination
+      const todos = await Todo.find({ userId }).skip(skip).limit(take);
+
+      // Get the total count of todos for the user
+      const total = await Todo.countDocuments({ userId });
+
+      return { todos, total };
     } catch (error) {
       throw new Error(`Failed to fetch todos: ${error}`);
     }

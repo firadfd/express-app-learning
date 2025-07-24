@@ -3,6 +3,7 @@ import { TodoService } from "./todo.service";
 import sendResponse from "../../shared/sendResponse";
 import ApiError from "../../error/ApiError";
 import httpStatus from "http-status";
+import { paginationHelper } from "../../shared/paginations";
 
 export class TodoController {
   // Get all todos
@@ -18,7 +19,14 @@ export class TodoController {
 
       const userId = user.id;
 
-      const todos = await TodoService.getAllTodos(userId);
+      const { page, limit } = req.query;
+
+      const paginationOptions = paginationHelper({
+        page: page ? Number(page) : 1,
+        limit: limit ? Number(limit) : 10,
+      });
+
+      const todos = await TodoService.getAllTodos(userId, paginationOptions);
       sendResponse(res, {
         statusCode: 200,
         success: true,
