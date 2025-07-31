@@ -21,22 +21,41 @@ export class TodoController {
 
       const { page, limit } = req.query;
 
+      const currentPage = page ? Number(page) : 1;
+      const itemsPerPage = limit ? Number(limit) : 10;
+
       const paginationOptions = paginationHelper({
-        page: page ? Number(page) : 1,
-        limit: limit ? Number(limit) : 10,
+        page: currentPage,
+        limit: itemsPerPage,
       });
 
-      const todos = await TodoService.getAllTodos(userId, paginationOptions);
+      const { todos, total } = await TodoService.getAllTodos(
+        userId,
+        paginationOptions
+      );
+
+      const totalPages = Math.ceil(total / itemsPerPage);
+
       sendResponse(res, {
-        statusCode: 200,
+        statusCode: httpStatus.OK, // Use httpStatus for clarity
         success: true,
         message: "All todos fetched successfully",
-        data: todos,
+        data: {
+          result: todos, // This aligns with your `TodoListResponse` model's `result` field being a list of Todos
+          totalCount: total,
+          currentPage: currentPage,
+          totalPages: totalPages,
+        },
       });
     } catch (error: any) {
-      console.error("Error:", error.message);
+      console.error("Error fetching todos:", error.message); // More descriptive error logging
+      // Assuming ApiError has a statusCode or you can infer it
+      const statusCode =
+        error instanceof ApiError
+          ? error.statusCode
+          : httpStatus.INTERNAL_SERVER_ERROR;
       sendResponse(res, {
-        statusCode: 500,
+        statusCode: statusCode,
         success: false,
         message: error.message || "Server error",
         data: null,

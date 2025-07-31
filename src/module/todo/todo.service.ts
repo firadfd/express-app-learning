@@ -24,8 +24,9 @@ export class TodoService {
       const total = await Todo.countDocuments({ userId });
 
       return { todos, total };
-    } catch (error) {
-      throw new Error(`Failed to fetch todos: ${error}`);
+    } catch (error: any) {
+      // Catch as 'any' or a more specific error type
+      throw new Error(`Failed to fetch todos: ${error.message || error}`); // Improved error message
     }
   }
 
